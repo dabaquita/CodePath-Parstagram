@@ -61,13 +61,21 @@ class LoginViewController: UIViewController {
         button.setTitle("Sign Up", for: .normal)
         return button
     }()
+    
+    let userLoggedInKey = "userLoggedIn"
 
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
-        self.navigationController?.isNavigationBarHidden = true
         
         configureMainVerticalStackView()
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        if UserDefaults.standard.bool(forKey: self.userLoggedInKey) {
+            navToFeed()
+        }
     }
     
     // MARK: Configure Subviews
@@ -138,6 +146,7 @@ class LoginViewController: UIViewController {
             password: password
         ) { (user, error) in
             if let user = user {
+                UserDefaults.standard.setValue(true, forKey: self.userLoggedInKey)
                 self.navToFeed()
             } else {
                 self.presentAlert(
@@ -156,6 +165,7 @@ class LoginViewController: UIViewController {
         
         user.signUpInBackground { (success, error) in
             if success {
+                UserDefaults.standard.setValue(true, forKey: self.userLoggedInKey)
                 self.navToFeed()
             } else {
                 self.presentAlert(
@@ -169,7 +179,10 @@ class LoginViewController: UIViewController {
     
     private func navToFeed() {
         let feedVC = FeedViewController()
-        self.show(feedVC, sender: self)
+        let mainNavVC = UINavigationController(rootViewController: feedVC)
+        mainNavVC.modalPresentationStyle = .fullScreen
+        mainNavVC.navigationBar.isTranslucent = false
+        self.show(mainNavVC, sender: self)
     }
     
     // MARK: Alerts
