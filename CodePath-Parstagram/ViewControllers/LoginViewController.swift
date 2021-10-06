@@ -138,8 +138,7 @@ class LoginViewController: UIViewController {
             password: password
         ) { (user, error) in
             if let user = user {
-                // Go to home screen
-                print("Sign in successful")
+                self.navToFeed()
             } else {
                 self.presentAlert(
                     title: "Sign In Failed",
@@ -157,8 +156,7 @@ class LoginViewController: UIViewController {
         
         user.signUpInBackground { (success, error) in
             if success {
-                // Go to home screen
-                print("Sign up successful")
+                self.navToFeed()
             } else {
                 self.presentAlert(
                     title: "Sign Up Failed",
@@ -167,6 +165,11 @@ class LoginViewController: UIViewController {
                 print("Sign up failed due to \(error?.localizedDescription)")
             }
         }
+    }
+    
+    private func navToFeed() {
+        let feedVC = FeedViewController()
+        self.show(feedVC, sender: self)
     }
     
     // MARK: Alerts
