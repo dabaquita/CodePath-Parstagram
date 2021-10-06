@@ -14,6 +14,20 @@ class FeedViewController: UIViewController {
         view.backgroundColor = .systemBackground
         
         // Configure nav bar
+        navigationItem.rightBarButtonItem = UIBarButtonItem(
+            image: UIImage(named: "insta_camera_btn"),
+            style: .plain,
+            target: self,
+            action: #selector(didTapCamera(_:))
+        )
+        let logoImageView = UIImageView(image: UIImage(named: "instagram_logo"))
+        logoImageView.contentMode = .scaleAspectFit
+        navigationItem.titleView = logoImageView
+    }
+    
+    // MARK: Selectors
+    @objc func didTapCamera(_ sender: Any) {
+        print("Tapped Camera")
     }
     
 
