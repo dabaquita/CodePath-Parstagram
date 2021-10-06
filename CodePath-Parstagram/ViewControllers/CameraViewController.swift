@@ -7,6 +7,7 @@
 
 import UIKit
 import AlamofireImage
+import Parse
 
 class CameraViewController: UIViewController {
     
@@ -24,6 +25,7 @@ class CameraViewController: UIViewController {
         button.clipsToBounds = true
         return button
     }()
+    let postsClassName = "Posts"
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -74,6 +76,29 @@ class CameraViewController: UIViewController {
     // MARK: Selectors
     @objc func didTapSubmit(_ sender: Any) {
         print("Tapped submit")
+        guard let author = PFUser.current(),
+              let image = postImageView.image,
+              let imageData = image.pngData()
+        else {
+            return
+        }
+        let post = PFObject(className: postsClassName)
+        
+        if let captionText = commentTextField.text {
+            post["caption"] = captionText
+        } else {
+            post["caption"] = ""
+        }
+        post["author"] = author
+        post["image"] = PFFileObject(data: imageData)
+        
+        post.saveInBackground() { (success, error) in
+            if success {
+                print("saved post successfully")
+            } else {
+                print("Could not save post due to \(error?.localizedDescription)")
+            }
+        }
     }
     
     @objc func didTapCameraImageView(_ sender: Any) {
