@@ -17,10 +17,11 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         window?.windowScene = windowScene
         
         // Creating View Hierarchy
-        let start = UIViewController()
+        let loginVC = LoginViewController()
+        let mainNavVC = UINavigationController(rootViewController: loginVC)
         
         // Setting root and window
-        window?.rootViewController = start
+        window?.rootViewController = mainNavVC
         window?.makeKeyAndVisible()
     }
 
