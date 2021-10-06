@@ -95,6 +95,7 @@ class CameraViewController: UIViewController {
         post.saveInBackground() { (success, error) in
             if success {
                 print("saved post successfully")
+                self.navigationController?.popViewController(animated: true)
             } else {
                 print("Could not save post due to \(error?.localizedDescription)")
             }
