@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import Parse
 
 class LoginViewController: UIViewController {
     
@@ -123,10 +124,64 @@ class LoginViewController: UIViewController {
     // MARK: Selectors
     @objc func didTapSignIn(_ sender: Any) {
         print("Tapped Sign In")
+        guard let username = usernameTextfield.text,
+              let password = passwordTextfield.text else {
+            self.presentAlert(
+                title: "Invalid Entry",
+                message: "Username or password is empty. Please try again."
+            )
+            return
+        }
+        
+        PFUser.logInWithUsername(
+            inBackground: username,
+            password: password
+        ) { (user, error) in
+            if let user = user {
+                // Go to home screen
+                print("Sign in successful")
+            } else {
+                self.presentAlert(
+                    title: "Sign In Failed",
+                    message: "Failed to verify your username and password. Please try again."
+                )
+                print("Sign in failed due to \(error?.localizedDescription)")
+            }
+        }
     }
     
     @objc func didTapSignUp(_ sender: Any) {
-        print("Tapped Sign Up")
+        let user = PFUser()
+        user.username = usernameTextfield.text
+        user.password = passwordTextfield.text
+        
+        user.signUpInBackground { (success, error) in
+            if success {
+                // Go to home screen
+                print("Sign up successful")
+            } else {
+                self.presentAlert(
+                    title: "Sign Up Failed",
+                    message: "Please try again and enter a valid username and password."
+                )
+                print("Sign up failed due to \(error?.localizedDescription)")
+            }
+        }
+    }
+    
+    // MARK: Alerts
+    private func presentAlert(title: String, message: String) {
+        let alertActionOk = UIAlertAction(
+            title: "Ok",
+            style: .cancel
+        )
+        let alertVC = UIAlertController(
+            title: title,
+            message: message,
+            preferredStyle: .alert
+        )
+        alertVC.addAction(alertActionOk)
+        self.present(alertVC, animated: true)
     }
 }
 
