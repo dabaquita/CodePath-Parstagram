@@ -13,6 +13,7 @@ class FeedViewController: UIViewController {
     
     let tableView = UITableView()
     var posts = [PFObject]()
+    let customRefreshControl = UIRefreshControl()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -28,6 +29,8 @@ class FeedViewController: UIViewController {
         let logoImageView = UIImageView(image: UIImage(named: "instagram_logo"))
         logoImageView.contentMode = .scaleAspectFit
         navigationItem.titleView = logoImageView
+        customRefreshControl.addTarget(self, action: #selector(loadPosts), for: .valueChanged)
+        tableView.refreshControl = customRefreshControl
         
         // Configure any subviews
         configureTableView()
@@ -35,19 +38,7 @@ class FeedViewController: UIViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        
-        let query = PFQuery(className: "Posts")
-        query.includeKey("author")
-        query.limit = 20
-        
-        query.findObjectsInBackground { (posts, error) in
-            if let posts = posts {
-                self.posts = posts
-                self.tableView.reloadData()
-            } else {
-                print("Could not find posts due to \(error?.localizedDescription)")
-            }
-        }
+        self.loadPosts(self)
     }
     
     // MARK: Configure Subviews
@@ -71,6 +62,22 @@ class FeedViewController: UIViewController {
     @objc func didTapCamera(_ sender: Any) {
         let cameraVC = CameraViewController()
         self.show(cameraVC, sender: self)
+    }
+    
+    @objc func loadPosts(_ sender: Any) {
+        let query = PFQuery(className: "Posts")
+        query.includeKey("author")
+        query.limit = 20
+        
+        query.findObjectsInBackground { (posts, error) in
+            if let posts = posts {
+                self.posts = posts
+                self.tableView.reloadData()
+                self.customRefreshControl.endRefreshing()
+            } else {
+                print("Could not find posts due to \(error?.localizedDescription)")
+            }
+        }
     }
 }
 
