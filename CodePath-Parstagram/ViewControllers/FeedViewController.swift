@@ -13,13 +13,20 @@ class FeedViewController: UIViewController {
     
     let tableView = UITableView()
     var posts = [PFObject]()
-    let customRefreshControl = UIRefreshControl()
+    private let customRefreshControl = UIRefreshControl()
+    private let userLoggedInKey = "userLoggedIn"
 
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
         
         // Configure nav bar
+        navigationItem.leftBarButtonItem = UIBarButtonItem(
+            title: "Logout",
+            style: .plain,
+            target: self,
+            action: #selector(didTapLogout)
+        )
         navigationItem.rightBarButtonItem = UIBarButtonItem(
             image: UIImage(named: "insta_camera_btn"),
             style: .plain,
@@ -29,6 +36,7 @@ class FeedViewController: UIViewController {
         let logoImageView = UIImageView(image: UIImage(named: "instagram_logo"))
         logoImageView.contentMode = .scaleAspectFit
         navigationItem.titleView = logoImageView
+        
         customRefreshControl.addTarget(self, action: #selector(loadPosts), for: .valueChanged)
         tableView.refreshControl = customRefreshControl
         
@@ -62,6 +70,17 @@ class FeedViewController: UIViewController {
     @objc func didTapCamera(_ sender: Any) {
         let cameraVC = CameraViewController()
         self.show(cameraVC, sender: self)
+    }
+    
+    @objc func didTapLogout(_ sender: Any) {
+        PFUser.logOutInBackground { (error) in
+            if let error = error {
+                print("Error in logging out due to \(error)")
+            } else {
+                UserDefaults.standard.setValue(false, forKey: self.userLoggedInKey)
+                self.dismiss(animated: true)
+            }
+        }
     }
     
     @objc func loadPosts(_ sender: Any) {
