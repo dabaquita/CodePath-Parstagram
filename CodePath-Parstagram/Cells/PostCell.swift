@@ -31,7 +31,7 @@ class PostCell: UITableViewCell {
     // Configure views
     private func configureStackView() {
         stackView.axis = .vertical
-        stackView.distribution = .fillProportionally
+        stackView.distribution = .fill
         stackView.alignment = .fill
         stackView.spacing = 21
         contentView.addSubview(stackView)
@@ -39,33 +39,44 @@ class PostCell: UITableViewCell {
         // Constraints
         stackView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            stackView.topAnchor.constraint(equalTo: self.topAnchor),
-            stackView.leadingAnchor.constraint(equalTo: self.leadingAnchor),
-            stackView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
-            stackView.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -11)
+            stackView.topAnchor.constraint(equalTo: contentView.topAnchor),
+            stackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            stackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            stackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -21)
         ])
         
         // Subviews
         stackView.addArrangedSubview(postImageView)
+        
         configureNestedStackView()
     }
     
     private func configureNestedStackView() {
-        labelStackView.axis = .vertical
+        labelStackView.axis = .horizontal
         labelStackView.distribution = .fillProportionally
         labelStackView.alignment = .fill
-        labelStackView.spacing = 11
+        labelStackView.spacing = 21
         stackView.addArrangedSubview(labelStackView)
         
         // Subviews
         usernameLabel.font = .systemFont(ofSize: 21, weight: .semibold)
         usernameLabel.numberOfLines = 1
+        usernameLabel.textAlignment = .left
+        usernameLabel.setContentHuggingPriority(.required, for: .horizontal)
+        usernameLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
         labelStackView.addArrangedSubview(usernameLabel)
+        usernameLabel.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            usernameLabel.leadingAnchor.constraint(equalTo: labelStackView.leadingAnchor, constant: 11)
+        ])
         
         captionLabel.font = .systemFont(ofSize: 16)
         captionLabel.numberOfLines = 0
+        captionLabel.textAlignment = .left
         labelStackView.addArrangedSubview(captionLabel)
+        captionLabel.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            captionLabel.trailingAnchor.constraint(equalTo: labelStackView.trailingAnchor, constant: -11)
+        ])
     }
-    
-    
 }

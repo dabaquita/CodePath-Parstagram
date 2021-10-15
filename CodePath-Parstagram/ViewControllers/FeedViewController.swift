@@ -54,6 +54,7 @@ class FeedViewController: UIViewController {
         tableView.delegate = self
         tableView.dataSource = self
         tableView.register(PostCell.self, forCellReuseIdentifier: PostCell.identifier)
+        tableView.register(CommentCell.self, forCellReuseIdentifier: CommentCell.identifier)
         view.addSubview(tableView)
         
         // Constraints
@@ -85,7 +86,7 @@ class FeedViewController: UIViewController {
     
     @objc func loadPosts(_ sender: Any) {
         let query = PFQuery(className: "Posts")
-        query.includeKey("author")
+        query.includeKeys(["author", "comments", "comments.author"])
         query.limit = 20
         
         query.findObjectsInBackground { (posts, error) in
@@ -101,42 +102,95 @@ class FeedViewController: UIViewController {
 }
 
 extension FeedViewController: UITableViewDelegate, UITableViewDataSource {
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    func numberOfSections(in tableView: UITableView) -> Int {
         return posts.count
     }
     
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        let post = posts[section]
+        let comments = (post["comments"] as? [PFObject]) ?? []
+        return comments.count + 1
+    }
+    
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let cell = tableView.dequeueReusableCell(
-                withIdentifier: PostCell.identifier,
-                for: indexPath
-        ) as? PostCell else {
-            print("Could not load PostCell")
-            return UITableViewCell()
-        }
-        let post = posts[indexPath.row]
+        let post = posts[indexPath.section]
         
-        if let user = post["author"] as? PFUser {
-            cell.usernameLabel.text = user.username
+        if indexPath.row == 0 {
+            guard let cell = tableView.dequeueReusableCell(
+                    withIdentifier: PostCell.identifier,
+                    for: indexPath
+            ) as? PostCell else {
+                print("Could not load PostCell")
+                return UITableViewCell()
+            }
+            
+            if let user = post["author"] as? PFUser {
+                cell.usernameLabel.text = user.username
+            } else {
+                cell.usernameLabel.text = "ERROR: NOT FOUND"
+            }
+            
+            if let caption = post["caption"] as? String {
+                cell.captionLabel.text = caption
+            }
+            
+            if let imageFile = post["image"] as? PFFileObject,
+               let urlString = imageFile.url,
+               let url = URL(string: urlString) {
+                cell.postImageView.af.setImage(withURL: url)
+            } else {
+                cell.postImageView.image = UIImage(named: "image_placeholder")
+            }
+            
+            return cell
         } else {
-            cell.usernameLabel.text = "ERROR: NOT FOUND"
+            guard let cell = tableView.dequeueReusableCell(
+                withIdentifier: CommentCell.identifier,
+                    for: indexPath
+            ) as? CommentCell else {
+                print("Could not load CommentCell")
+                return UITableViewCell()
+            }
+            
+            guard let comments = post["comments"] as? [PFObject] else {
+                return UITableViewCell()
+            }
+            
+            let comment = comments[indexPath.row - 1]
+
+            let user = comment["author"] as! PFUser
+            cell.nameLabel.text = user.username
+
+            cell.commentLabel.text = comment["text"] as! String
+            
+            return cell
         }
-        
-        if let caption = post["caption"] as? String {
-            cell.captionLabel.text = caption
-        }
-        
-        if let imageFile = post["image"] as? PFFileObject,
-           let urlString = imageFile.url,
-           let url = URL(string: urlString) {
-            cell.postImageView.af.setImage(withURL: url)
-        } else {
-            cell.postImageView.image = UIImage(named: "image_placeholder")
-        }
-        
-        return cell
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return view.bounds.height / 1.3
+        if indexPath.row == 0 {
+            return view.bounds.height / 1.5
+        } else {
+            return view.bounds.height / 13
+        }
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
+        
+        let post = posts[indexPath.row]
+        let comment = PFObject(className: "Comments")
+        comment["text"] = "This is a random comment"
+        comment["post"] = post
+        comment["author"] = PFUser.current()!
+        
+        post.add(comment, forKey: "comments")
+        post.saveInBackground { (success, error) in
+            if success {
+                print("Comment saved")
+            } else {
+                print("Failed to get post due to \(error?.localizedDescription)")
+            }
+        }
     }
 }
