@@ -19,6 +19,7 @@ class FeedViewController: UIViewController {
     private let customRefreshControl = UIRefreshControl()
     private let userLoggedInKey = "userLoggedIn"
     private var showsCommentBar = false
+    private var selectedPost: PFObject!
     
     override var inputAccessoryView: UIView? {
         return commentBar
@@ -233,6 +234,8 @@ extension FeedViewController: UITableViewDelegate, UITableViewDataSource {
             showsCommentBar = true
             becomeFirstResponder()
             commentBar.inputTextView.becomeFirstResponder()
+            
+            selectedPost = post
         }
     }
 }
@@ -241,6 +244,22 @@ extension FeedViewController: UITableViewDelegate, UITableViewDataSource {
 extension FeedViewController: MessageInputBarDelegate {
     func messageInputBar(_ inputBar: MessageInputBar, didPressSendButtonWith text: String) {
         // Create comment
+        let comment = PFObject(className: "Comments")
+        comment["text"] = text
+        comment["post"] = selectedPost
+        comment["author"] = PFUser.current()!
+        
+        selectedPost.add(comment, forKey: "comments")
+        
+        selectedPost.saveInBackground { (success, error) in
+            if success {
+                print("Comment saved")
+            } else {
+                print("Error saving comment due to \(error?.localizedDescription)")
+            }
+        }
+        
+        tableView.reloadData()
         
         // Clear and dismiss input bar
         commentBar.inputTextView.text = nil

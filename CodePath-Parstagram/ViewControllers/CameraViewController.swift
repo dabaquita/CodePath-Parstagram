@@ -128,7 +128,7 @@ extension CameraViewController: UIImagePickerControllerDelegate, UINavigationCon
             width: postImageView.bounds.width,
             height: postImageView.bounds.height
         )
-        let scaledImage = pickedImage.af.imageScaled(to: size)
+        let scaledImage = pickedImage.af.imageAspectScaled(toFill: size)
         postImageView.image = scaledImage
         self.dismiss(animated: true)
     }
